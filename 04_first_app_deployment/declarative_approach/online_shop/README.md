@@ -103,6 +103,58 @@ In short:
 Create or apply **online_shop_app.yml**
 
 ```yaml
+# Argo CD Application ka API version
+apiVersion: argoproj.io/v1alpha1
+
+# Resource type: Application (single app deploy karne ke liye)
+kind: Application
+
+metadata:
+  # Application ka naam
+  name: nginx-app
+
+  # Argo CD jis namespace mein installed hota hai
+  namespace: argocd
+
+spec:
+  # Argo CD project ka naam
+  project: default
+
+  # Source batata hai ke manifests kahan se aayengi
+  source:
+    # Git repository jahan Kubernetes YAML files rakhi hui hain
+    repoURL: https://github.com/<your-username>/argocd-demos.git
+
+    # Git branch ya tag
+    targetRevision: main
+
+    # Repo ke andar nginx ka folder
+    path: ui_approach/nginx
+
+  # Destination batata hai ke application kahan deploy hogi
+  destination:
+    # Kubernetes cluster ka API server
+    # Iska matlab same cluster jahan Argo CD chal raha hai
+    server: https://kubernetes.default.svc
+
+    # Namespace jahan nginx deploy hoga
+    namespace: default
+
+  # Sync policy define karta hai Argo CD ka behavior
+  syncPolicy:
+    automated:
+      # Git se resource delete hone par cluster se bhi delete hoga
+      prune: true
+
+      # Manual change hone par Argo CD usay khud theek karega
+      selfHeal: true
+
+
+
+
+
+
+
 
 apiVersion: argoproj.io/v1alpha1   # API group for ArgoCD resources
 kind: Application                  # Resource type is "Application"
