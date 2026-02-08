@@ -1,34 +1,69 @@
+# Argo CD ka API version jo ApplicationSet support karta hai
 apiVersion: argoproj.io/v1alpha1
+
+# Resource type: ApplicationSet (multiple applications banane ke liye)
 kind: ApplicationSet
+
 metadata:
+  # ApplicationSet ka naam
   name: demo-list
+
+  # Argo CD usually isi namespace mein hota hai
   namespace: argocd
+
 spec:
-  # The list generator lets you enumerate a static set of elements (apps).
+  # Generators decide karte hain ke kitni applications create hongi
   generators:
     - list:
+        # Static list of applications (manually defined)
         elements:
-          - app: nginx
-            path: ui_approach/nginx     # path in repo for this app
-          - app: online-shop
-            path: multicluster/online-shop   # path in repo for this app
-          - app: chaiapp
-            path: applicationsets/chai-app      # path in repo for this app
-  # Template that will be used to generate individual Application CRs
+          # Pehli application
+          - app: nginx                  # Application ka naam
+            path: ui_approach/nginx     # Git repo ke andar nginx ka folder
+
+          # Doosri application
+          - app: online-shop            # Application ka naam
+            path: multicluster/online-shop  # Online shop ka folder
+
+          # Teesri application
+          - app: chaiapp                # Application ka naam
+            path: applicationsets/chai-app  # Chai app ka folder
+
+  # Template jo har element se Argo CD Application create karega
   template:
     metadata:
-      # name template uses the element key 'app'
+      # Application ka naam dynamically banega
+      # Example: nginx-list, online-shop-list, chaiapp-list
       name: '{{app}}-list'
+
     spec:
+      # Argo CD project (default use ho raha hai)
       project: default
+
+      # Source batata hai ke manifests kahan se aayengi
       source:
+        # Git repository jahan Kubernetes YAML files hain
         repoURL: https://github.com/<your-username>/argocd-demos.git
+
+        # Git branch
         targetRevision: main
-        path: '{{path}}'                # resolved from element
+
+        # Folder path jo upar list generator se aa raha hai
+        path: '{{path}}'
+
+      # Destination batata hai ke app kahan deploy hogi
       destination:
+        # Same Kubernetes cluster jahan Argo CD chal raha hai
         server: https://kubernetes.default.svc
+
+        # Namespace jahan app deploy hogi
         namespace: default
+
+      # Sync policy define karta hai ke Argo CD ka behavior kya hoga
       syncPolicy:
         automated:
+          # Git se resource delete hone par cluster se bhi delete hoga
           prune: true
+
+          # Manual changes ko Argo CD khud wapas Git wali state mein le aayega
           selfHeal: true
